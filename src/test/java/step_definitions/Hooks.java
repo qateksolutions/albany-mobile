@@ -1,36 +1,28 @@
 package step_definitions;
 
 import io.appium.java_client.AppiumDriver;
-import io.appium.java_client.android.AndroidDriver;
 import io.cucumber.java.After;
 import io.cucumber.java.Before;
-import utilities.CapabilitiesManager;
-import utilities.ReadConfigFiles;
-import utilities.ServerManager;
+import io.cucumber.java.Scenario;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import utilities.DriverFactory;
 
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.concurrent.TimeUnit;
 
 public class Hooks {
+    private static final Logger LOGGER = LogManager.getLogger(Hooks.class);    
     static AppiumDriver driver;
-    ServerManager serverManager = new ServerManager();
 
     @Before
-    public void initialize() throws MalformedURLException {
-        serverManager.startAppiumServer();
-
-        CapabilitiesManager caps = new CapabilitiesManager();
-        URL url = new URL(ReadConfigFiles.getPropertyValues("appiumURL"));
-        driver = new AndroidDriver(url, caps.getCaps());
+    public void initialize(Scenario scenario) {
+        LOGGER.info(String.format("------Scenario: %s--------", scenario.getName()));
+        driver = DriverFactory.getInstance().getDriver();
         driver.manage().timeouts().implicitlyWait(15, TimeUnit.SECONDS);
     }
 
     @After
     public void cleanup() {
-        if(driver != null) {
-            driver.quit();
-        }
-        serverManager.stopAppiumServer();
+        DriverFactory.getInstance().removeDriver();
     }
 }
